@@ -1,7 +1,10 @@
 package com.nowcoder;
 
+import com.nowcoder.dao.CommentDAO;
 import com.nowcoder.dao.NewsDAO;
 import com.nowcoder.dao.UserDao;
+import com.nowcoder.model.Comment;
+import com.nowcoder.model.EntityType;
 import com.nowcoder.model.News;
 import com.nowcoder.model.User;
 import org.junit.Assert;
@@ -24,6 +27,9 @@ public class InitDatabaseTests {
 
     @Autowired
     NewsDAO newsDAO;
+
+    @Autowired
+    CommentDAO commentDAO;
 
     @Test
     public void initData() {
@@ -50,6 +56,17 @@ public class InitDatabaseTests {
 
             user.setPassword("newpassword");
             userDAO.updatePassword(user);
+
+            for (int j = 1; j < 3; j++){
+                Comment comment = new Comment();
+                comment.setUserId(j + 1);
+                comment.setEntityId(news.getId());
+                comment.setEntityType(EntityType.ENTITY_NEWS);
+                comment.setStatus(0);
+                comment.setCreatedDate(new Date());
+                comment.setContent("comment" + String.valueOf(j));
+                commentDAO.addComment(comment);
+            }
         }
 
         Assert.assertEquals(userDAO.selectedById(1).getPassword(), "newpassword");
@@ -57,6 +74,8 @@ public class InitDatabaseTests {
       /*  Assert.assertEquals("newpassword", userDAO.selectById(1).getPassword());
         userDAO.deleteById(1);
         Assert.assertNull(userDAO.selectById(1));*/
+
+      //Assert.assertNotNull(commentDAO.selectByEntity());
 
     }
 

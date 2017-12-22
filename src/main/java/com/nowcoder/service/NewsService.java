@@ -32,6 +32,12 @@ public class NewsService {
         return newsDAO.getById(newsId);
     }
 
+    /**
+     * 保存图片
+     * @param file
+     * @return
+     * @throws IOException
+     */
     public String saveImage(MultipartFile file) throws IOException{
         int dotPos = file.getOriginalFilename().lastIndexOf(".");
         if (dotPos < 0){
@@ -49,5 +55,15 @@ public class NewsService {
 
         return ToutiaoUtil.Toutiao_Domain + "image/name=" + fileName;
 
+    }
+
+    /**
+     * 更新评论数
+     * @param id
+     * @param count
+     * @return
+     */
+    public int updateCommentCount(int id, int count) {
+        return newsDAO.updateCommentCount(id, count);
     }
 }
