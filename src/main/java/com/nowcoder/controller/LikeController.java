@@ -37,6 +37,8 @@ public class LikeController {
         // 更新喜欢数
         News news = newsService.getById(newsId);
         newsService.updateLikeCount(newsId, (int) likeCount);
+
+        //记录当前点赞事件的信息--发起人、owner
         eventProducer.fireEvent(new EventModel(EventType.LIKE)
                 .setEntityOwnerId(news.getUserId())
                 .setActorId(hostHolder.getUser().getId()).setEntityId(newsId));

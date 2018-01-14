@@ -1,5 +1,9 @@
 package com.nowcoder.controller;
 
+import com.nowcoder.async.EventModel;
+import com.nowcoder.async.EventProducer;
+import com.nowcoder.async.EventType;
+import com.nowcoder.model.EntityType;
 import com.nowcoder.service.UserService;
 import com.nowcoder.util.ToutiaoUtil;
 import org.slf4j.Logger;
@@ -17,13 +21,16 @@ import java.util.Map;
 public class LoginController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
+
     @Autowired
     UserService userService;
 
+    @Autowired
+    EventProducer eventProducer;
 
-    @RequestMapping(path = {"/reg/"}, method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(path = {"/login/"}, method = {RequestMethod.GET, RequestMethod.POST})
     @ResponseBody
-    public String register(Model model, @RequestParam("username") String username,
+    public String login(Model model, @RequestParam("username") String username,
                            @RequestParam("password") String pwd,
                            @RequestParam(value = "rember", defaultValue = "0") int remember,
                            HttpServletResponse response)
@@ -33,6 +40,13 @@ public class LoginController {
             if (map.containsKey("ticket")){
                 Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
                 response.addCookie(cookie);
+
+                //登录异常校验
+                eventProducer.fireEvent(new EventModel(
+                        EventType.LOGIN).setActorId((int) map.get("userId"))
+                        //扩展信息
+                        .setExt("username", username)
+                        .setExt("email", "xxx@qq.com"));
                 //设置cookie路径为全量有效
                 cookie.setPath("/");
                 //用户保持登陆的话就给他记住五天
@@ -60,9 +74,9 @@ public class LoginController {
      * @param response
      * @return
      */
-    @RequestMapping(path = {"/login/"}, method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(path = {"/reg/"}, method = {RequestMethod.GET, RequestMethod.POST})
     @ResponseBody
-    public String login(Model model, @RequestParam("username") String username,
+    public String register(Model model, @RequestParam("username") String username,
                            @RequestParam("password") String pwd,
                            @RequestParam(value = "rember", defaultValue = "0") int remember,
                            HttpServletResponse response)

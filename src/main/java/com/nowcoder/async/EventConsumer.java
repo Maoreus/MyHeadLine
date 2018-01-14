@@ -21,9 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Consumer根据Producer传入的事件进行路由转发寻找Handler处理
+ */
 @Service
 public class EventConsumer implements InitializingBean, ApplicationContextAware {
+
     private static final Logger logger = LoggerFactory.getLogger(EventConsumer.class);
+
+    //保存对应的Event的EventHandler关系
     private Map<EventType, List<EventHandler>> config = new HashMap<>();
     private ApplicationContext applicationContext;
     @Autowired
@@ -31,11 +37,15 @@ public class EventConsumer implements InitializingBean, ApplicationContextAware 
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //找出实现了EvenHandler的类
         Map<String, EventHandler> beans = applicationContext.getBeansOfType(EventHandler.class);
         if (beans != null) {
+            //遍历
             for (Map.Entry<String, EventHandler> entry : beans.entrySet()) {
                 List<EventType> eventTypes = entry.getValue().getSupportEventTypes();
+                //找到对应的type
                 for (EventType type : eventTypes) {
+                    //若初始化为空向里面加入新的List
                     if (!config.containsKey(type)) {
                         config.put(type, new ArrayList<EventHandler>());
                     }
@@ -52,7 +62,9 @@ public class EventConsumer implements InitializingBean, ApplicationContextAware 
             public void run() {
                 // 从队列一直消费
                 while (true) {
+
                     String key = RedisKeyUtil.getEventQueueKey();
+                    //从jedis中取出事件
                     List<String> messages = jedisAdapter.brpop(0, key);
                     // 第一个元素是队列名字
                     for (String message : messages) {
@@ -60,6 +72,7 @@ public class EventConsumer implements InitializingBean, ApplicationContextAware 
                             continue;
                         }
 
+                        //解析从Producer中取出来的序列化后的对象
                         EventModel eventModel = JSON.parseObject(message, EventModel.class);
                         // 找到这个事件的处理handler列表
                         if (!config.containsKey(eventModel.getType())) {
